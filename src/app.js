@@ -11,7 +11,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
 const chatRoutes = require('./routes/chat');
-
+const feedbackRoutes = require('./routes/feedback');
 const app = express();
 
 const allowedOrigins = [
@@ -57,6 +57,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/ai', chatRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // 404 fallback
 app.use((req, res) => {

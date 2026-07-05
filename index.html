@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DLS AI Chatbot</title>
+  <title>DLS & COAL AI Mentor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -477,16 +477,16 @@
 <header>
   <div class="logo">🧠</div>
   <div>
-    <h1>DLS Mentor</h1>
-    <p>Digital Logics Studio — AI Teaching Assistant</p>
+    <h1>DLS & COAL Mentor</h1>
+    <p>Digital Logic Studio & Computer Organization — AI Teaching Assistant</p>
   </div>
   <span class="badge" id="model-badge">llama-3.3-70b</span>
 </header>
 
 <!-- ── ONBOARDING ── -->
 <div id="onboarding">
-  <h2>👋 Welcome to DLS Mentor</h2>
-  <p>Let's personalise your experience before we start.</p>
+  <h2>👋 Welcome to DLS & COAL Mentor</h2>
+  <p>Your tutor for <strong>Digital Logic (DLD)</strong> and <strong>Computer Organization & Assembly (COAL)</strong>. Let's personalise your experience.</p>
 
   <div>
     <label for="ob-name">Your name</label>
@@ -503,14 +503,16 @@
   </div>
 
   <div>
-    <label for="ob-topic">Starting topic</label>
-    <select id="ob-topic">
-      <option value="boolean-algebra">Boolean Algebra</option>
-      <option value="number-systems">Number Systems</option>
-      <option value="arithmetic-circuits">Arithmetic Circuits</option>
-      <option value="memory">Memory (Latches & Flip-flops)</option>
-      <option value="sequential-circuits">Sequential Circuits</option>
+    <label for="ob-course">Course track</label>
+    <select id="ob-course">
+      <option value="dld">DLD — Digital Logic Design</option>
+      <option value="coal">COAL — Computer Organization & Assembly</option>
     </select>
+  </div>
+
+  <div>
+    <label for="ob-topic">Starting topic</label>
+    <select id="ob-topic"></select>
   </div>
 
   <button class="primary" id="start-btn">Start chatting →</button>
@@ -519,14 +521,13 @@
 <!-- ── CHAT UI ── -->
 <div id="chat-ui">
   <div id="context-bar">
-    <span>Topic:</span>
-    <select id="topic-select">
-      <option value="boolean-algebra">Boolean Algebra</option>
-      <option value="number-systems">Number Systems</option>
-      <option value="arithmetic-circuits">Arithmetic Circuits</option>
-      <option value="memory">Memory</option>
-      <option value="sequential-circuits">Sequential Circuits</option>
+    <span>Course:</span>
+    <select id="course-select">
+      <option value="dld">DLD</option>
+      <option value="coal">COAL</option>
     </select>
+    <span style="margin-left:8px">Topic:</span>
+    <select id="topic-select"></select>
     <span style="margin-left:8px">Level:</span>
     <select id="level-select">
       <option value="beginner">Beginner</option>
@@ -539,7 +540,7 @@
   <div id="token-info"></div>
 
   <div id="input-row">
-    <textarea id="user-input" rows="1" placeholder="Ask a question about digital logic…"></textarea>
+    <textarea id="user-input" rows="1" placeholder="Ask about DLD, COAL, circuits, or assembly…"></textarea>
     <button id="send-btn" title="Send (Enter)">➤</button>
   </div>
 </div>
@@ -551,30 +552,87 @@
   let userName     = '';
   let streaming    = false;
 
+  const TOPIC_OPTIONS = {
+    dld: [
+      { value: 'boolean-algebra', label: 'Boolean Algebra' },
+      { value: 'number-systems', label: 'Number Systems' },
+      { value: 'arithmetic-circuits', label: 'Arithmetic Circuits' },
+      { value: 'memory', label: 'Memory (Latches & Flip-flops)' },
+      { value: 'sequential-circuits', label: 'Sequential Circuits' },
+    ],
+    coal: [
+      { value: 'intro-computer-organization', label: 'Intro to Computer Organization' },
+      { value: 'number-systems-representation', label: 'Number Systems & Representation' },
+      { value: 'digital-logic-bridge', label: 'Digital Logic Bridge' },
+      { value: 'cpu-components', label: 'CPU Components & Registers' },
+      { value: 'instruction-cycle', label: 'Instruction Cycle' },
+      { value: 'memory-hierarchy', label: 'Memory Hierarchy' },
+      { value: 'instruction-set-architecture', label: 'Instruction Set Architecture' },
+      { value: 'addressing-modes', label: 'Addressing Modes' },
+      { value: 'coal-syntax', label: 'Data Movement & Instructions' },
+      { value: 'control-flow', label: 'Control Flow & Branches' },
+      { value: 'procedures-stack', label: 'Procedures & Stack' },
+      { value: 'ia32-architecture', label: 'Intel IA-32 Architecture' },
+    ],
+  };
+
+  function populateTopicSelect(selectEl, course, selectedValue) {
+    const options = TOPIC_OPTIONS[course] || TOPIC_OPTIONS.dld;
+    selectEl.innerHTML = options
+      .map((opt) => `<option value="${opt.value}">${opt.label}</option>`)
+      .join('');
+    if (selectedValue && options.some((opt) => opt.value === selectedValue)) {
+      selectEl.value = selectedValue;
+    }
+  }
+
+  function syncCourseTopicSelects(course, topic) {
+    populateTopicSelect(document.getElementById('ob-topic'), course, topic);
+    populateTopicSelect(topicSelect, course, topic);
+    courseSelect.value = course;
+    document.getElementById('ob-course').value = course;
+  }
+
   // ── DOM refs ───────────────────────────────────────────────────────────
   const onboarding   = document.getElementById('onboarding');
   const chatUI       = document.getElementById('chat-ui');
   const messagesEl   = document.getElementById('messages');
   const inputEl      = document.getElementById('user-input');
   const sendBtn      = document.getElementById('send-btn');
+  const courseSelect = document.getElementById('course-select');
   const topicSelect  = document.getElementById('topic-select');
   const levelSelect  = document.getElementById('level-select');
   const tokenInfo    = document.getElementById('token-info');
 
+  populateTopicSelect(document.getElementById('ob-topic'), 'dld');
+  populateTopicSelect(topicSelect, 'dld');
+
+  document.getElementById('ob-course').addEventListener('change', (e) => {
+    populateTopicSelect(document.getElementById('ob-topic'), e.target.value);
+  });
+
+  courseSelect.addEventListener('change', (e) => {
+    populateTopicSelect(topicSelect, e.target.value);
+  });
+
   // ── Onboarding ─────────────────────────────────────────────────────────
   document.getElementById('start-btn').addEventListener('click', () => {
-    const name  = document.getElementById('ob-name').value.trim() || 'Learner';
-    const level = document.getElementById('ob-level').value;
-    const topic = document.getElementById('ob-topic').value;
+    const name   = document.getElementById('ob-name').value.trim() || 'Learner';
+    const level  = document.getElementById('ob-level').value;
+    const course = document.getElementById('ob-course').value;
+    const topic  = document.getElementById('ob-topic').value;
 
     userName = name;
-    topicSelect.value = topic;
+    syncCourseTopicSelects(course, topic);
     levelSelect.value = level;
 
     onboarding.style.display = 'none';
     chatUI.style.display = 'flex';
 
-    addBotMessage(`Hi ${name}! 👋 I'm DLS Mentor. Ask me anything about **${formatTopic(topic)}** — I'm here to help.`);
+    const courseLabel = course === 'coal' ? 'COAL' : 'DLD';
+    addBotMessage(
+      `Hi ${name}! 👋 I'm your DLS & COAL Mentor. Ask me anything about **${courseLabel}** — especially **${formatTopic(topic)}**. I'm here to help with digital logic and computer organization.`,
+    );
     inputEl.focus();
   });
 
@@ -584,6 +642,7 @@
     if (!text || streaming) return;
 
     const currentTopic = topicSelect.value;
+    const currentCourse = courseSelect.value === 'coal' ? 'COAL' : 'DLS';
     const difficulty   = levelSelect.value;
 
     // Track recent topics (last 3, no duplicates)
@@ -609,6 +668,7 @@
           message: text,
           context: {
             name: userName,
+            currentCourse,
             currentTopic,
             recentTopics: [...recentTopics],
             difficulty,

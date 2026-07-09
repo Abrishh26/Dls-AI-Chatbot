@@ -496,9 +496,9 @@
   <div>
     <label for="ob-level">Your current level</label>
     <select id="ob-level">
-      <option value="beginner">Beginner — new to digital logic</option>
-      <option value="intermediate" selected>Intermediate — know the basics</option>
-      <option value="advanced">Advanced — comfortable with circuits</option>
+      <option value="beginner">Beginner</option>
+      <option value="intermediate" selected>Intermediate</option>
+      <option value="advanced">Advanced</option>
     </select>
   </div>
 
@@ -686,7 +686,14 @@
       }
 
       const data = await res.json();
-      addBotMessage(data.reply || 'No response received.');
+      const botId = addBotMessage(data.reply || 'No response received.');
+      if (typeof attachFeedbackWidget === 'function') {
+        try {
+          attachFeedbackWidget(document.getElementById(botId), { question: text, answer: data.reply || 'No response received.' });
+        } catch (e) {
+          // non-fatal: feedback widget failed to attach
+        }
+      }
 
       if (data.tokensUsed) {
         tokenInfo.textContent = `Tokens used: ${data.tokensUsed} · Model: ${data.model}`;

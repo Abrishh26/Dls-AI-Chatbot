@@ -361,6 +361,21 @@ The chatbot now includes a feedback loop for evaluating answer quality:
 
 This gives visibility into answer quality over time and highlights curriculum areas that may need better source material.
 
+**Recent change (UI):** The local UI now attaches the feedback widget to every successful bot reply (not only error messages). When running the local UI at `http://localhost:5100` you should see thumbs up/down below each assistant message. Clicking a rating POSTs to `POST /api/feedback` and, for thumbs-down, the optional comment is PATCHed to `/api/feedback/:id/comment`.
+
+Quick local test:
+
+```bash
+# Start the service
+npm start
+
+# Open the local UI in a browser: http://localhost:5100
+# Ask a question, then click the thumbs-up or thumbs-down under the assistant reply.
+
+# (Optional) Verify via curl that the endpoint accepts feedback:
+curl.exe -X POST http://localhost:5100/api/feedback -H "Content-Type: application/json" -d "{\"sessionId\":\"local-test\",\"question\":\"What is 1+1?\",\"answer\":\"2\",\"rating\":\"up\"}"
+```
+
 ---
 ## License
 

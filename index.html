@@ -686,7 +686,14 @@
       }
 
       const data = await res.json();
-      addBotMessage(data.reply || 'No response received.');
+      const botId = addBotMessage(data.reply || 'No response received.');
+      if (typeof attachFeedbackWidget === 'function') {
+        try {
+          attachFeedbackWidget(document.getElementById(botId), { question: text, answer: data.reply || 'No response received.' });
+        } catch (e) {
+          // non-fatal: feedback widget failed to attach
+        }
+      }
 
       if (data.tokensUsed) {
         tokenInfo.textContent = `Tokens used: ${data.tokensUsed} · Model: ${data.model}`;

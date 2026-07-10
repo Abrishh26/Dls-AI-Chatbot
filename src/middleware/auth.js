@@ -23,6 +23,12 @@ function extractToken(req) {
   return null;
 }
 
+const isDev = (process.env.NODE_ENV || 'development') !== 'production';
+
+if (isDev) {
+  console.warn('[auth.middleware] NODE_ENV is not "production" — unauthenticated localhost requests will bypass login. Do not deploy with NODE_ENV unset or set to "development".');
+}
+
 function requireAuth(req, res, next) {
   const token = extractToken(req);
 

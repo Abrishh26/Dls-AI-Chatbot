@@ -15,7 +15,7 @@ const groqClient = new Groq({
 });
 
 const GROQ_DEFAULTS = {
-  model: process.env.GROQ_MODEL || 'llama3-70b-8192',
+  model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
   maxTokens: parseInt(process.env.GROQ_MAX_TOKENS, 10) || 1024,
   temperature: process.env.GROQ_TEMPERATURE !== undefined
     ? parseFloat(process.env.GROQ_TEMPERATURE)

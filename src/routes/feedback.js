@@ -4,6 +4,8 @@
 const express = require("express");
 const router = express.Router();
 const Feedback = require("../models/Feedback");
+const { requireAuth } = require("../middleware/auth");
+const { chatRateLimiter } = require("../middleware/rateLimit");
 
 /**
  * POST /api/feedback
@@ -23,7 +25,7 @@ const Feedback = require("../models/Feedback");
  *   topic: "biology"              // optional, tag curriculum area
  * }
  */
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, chatRateLimiter, async (req, res) => {
   try {
     const { question, answer, rating } = req.body;
 
@@ -52,7 +54,7 @@ router.post("/", async (req, res) => {
  *
  * Expected body: { comment: "the answer skipped the edge case" }
  */
-router.patch("/:id/comment", async (req, res) => {
+router.patch("/:id/comment", requireAuth, async (req, res) => {
   try {
     const { comment } = req.body;
     if (!comment) {
@@ -83,7 +85,7 @@ router.patch("/:id/comment", async (req, res) => {
  *
  * Optional query params: ?from=2026-01-01&to=2026-07-01
  */
-router.get("/stats", async (req, res) => {
+router.get("/stats", requireAuth, async (req, res) => {
   try {
     const match = {};
     if (req.query.from || req.query.to) {
@@ -135,7 +137,7 @@ router.get("/stats", async (req, res) => {
  * Pull the raw thumbs-down entries — this is your eval set for debugging
  * bad answers and finding which chunks were retrieved but weren't good enough.
  */
-router.get("/negatives", async (req, res) => {
+router.get("/negatives", requireAuth, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 100;
     const negatives = await Feedback.find({ rating: "down" })

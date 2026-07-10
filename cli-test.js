@@ -8,8 +8,14 @@ const http = require('http');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const API_URL = 'http://localhost:5100/api/ai/chat';
-const JWT_SECRET = process.env.JWT_SECRET || 'e192781289402157bcc19d323c53d251fc25cd6ed13fa840eedf315008370f1b3373f1177601ff0ace6873870cbacc8c2796e141a9772376873ca195d4cef00d';
+const PORT = process.env.PORT || 5100;
+const API_URL = `http://localhost:${PORT}/api/ai/chat`;
+
+if (!process.env.JWT_SECRET) {
+  console.error('❌ JWT_SECRET is not set in your .env file. Set it before running cli-test.js.');
+  process.exit(1);
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Create a test JWT token
 const testToken = jwt.sign(
@@ -35,7 +41,7 @@ function sendMessage(message) {
 
     const options = {
       hostname: 'localhost',
-      port: 5100,
+      port: PORT,
       path: '/api/ai/chat',
       method: 'POST',
       headers: {
